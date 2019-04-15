@@ -1,0 +1,339 @@
+<link rel="stylesheet" type="text/css" href="style.css">
+<div class="w3-padding-large" id="main">
+  <!-- Header/Home -->
+  <header>
+    <h1>Assembly Compiler</h1>
+  </header>
+      <div>
+        <script type="text/javascript">
+          
+        function disname(){
+          var ACC;
+          var arroftoks = [];
+          var arrofvars = new Map();
+          var arrofloops = new Map();
+          var reservedarr = ["ADD","SUB","MULT","DIV","LOAD","STORE","COPY","READ","WRITE","STOP","NOOP","BR","BRNEG","BRZNEG","BRPOS","BRZPOS","BRZERO","PUSH","POP","STACKW","STACKR"];
+
+
+          var arroffuncts = [
+            function(a, b) { if(!isNaN(a)){ ACC += a; } else{ ACC += arrofvars.get(a) } }
+            function(a, b) { numpromp = prompt("Give a number: "); arrofvars.set(a, numpromp); alert(arrofvars.get(a));} //READ
+          ]
+
+
+
+
+          function scanforit(){
+            let arroftoks = [];
+            class Token{
+            constructor(tokerid, teval, teline){
+              this.tokid = tokerid; //id of token: rsvd_tk, var_tk, num_tk
+              this.usd = teval; //user defined value
+              this.linenum = teline; //
+            }
+            }
+            var linesof = document.getElementById('codespace').value.split('\n');
+            var re = new RegExp("^[a-zA-Z][a-zA-Z0-9]*$");
+            var re2 = new RegExp("^[a-zA-Z][a-zA-Z0-9]*:$");
+            for(var linenumber = 0;linenumber < linesof.length; linenumber++){
+              var tk = linesof[linenumber].split(" ");
+              for(var p = 0; p < tk.length; p++){
+                if(reservedarr.includes(tk[p]) == true){
+                  arroftoks.push(new Token("rsvd_tk", tk[p], linenumber));
+                }
+                else if(re.test(tk[p])){
+                  arroftoks.push(new Token("var_tk", tk[p], linenumber));
+                }
+                else if(!isNaN(tk[p])){ //its a number
+                  arroftoks.push(new Token("num_tk", tk[p], linenumber));
+                }
+                else if(re2.test(tk[p])){  //i almost def have to keep them seperate, dont think they can go in arroftoks
+                  arroftoks.push(new Token("label_tk", tk[p], linenumber));
+                }
+                else{
+                  alert("Error Unknown Token on " + linenumber);
+                  exit();
+                }
+              }
+            }
+            return arroftoks;
+          }
+
+          arroftoks = scanforit();
+          for(var q = 0; q < arroftoks.length; q++){
+            if (arroftoks[q].tokid == "var_tk"){
+              //alert(arroftoks[q].tokid == "var_tk");
+              if(!arrofvars.has(arroftoks[q].usd)){
+                arrofvars.set(arroftoks[q].usd, null);
+              }
+              else{
+                continue;
+              }
+            }
+            else if(arroftoks[q].tokid == "label_tk"){
+              if(!arrofloops.has(arroftoks[q].usd)){
+                arrofloops.set(arroftoks[q].usd, linenum);
+              }
+            }
+          }
+
+          function parseforit(){
+            let stackflag = 0;
+            let p = 0;
+            while(p < arroftoks.length - 1){
+              if(arroftoks[p].usd == "READ"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable expected after READ");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "WRITE"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable expected after WRITE");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "STORE"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable expected after STORE");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "LOAD"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable expected after LOAD");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "NOOP"){ //whats the point of this
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "ADD"){
+                p++;
+                if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable or number expected after ADD");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "BR"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+              }
+              if(arroftoks[p].usd == "BRNEG"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Label name expected after use of BRNEG")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "BRZNEG"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Label name expected after use of BRZNEG")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "BRPOS"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Label name expected after use of BRPOS")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "BRZPOS"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Label name expected after use of BRZPOS")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "BRZERO"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Label name expected after use of BRZERO")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "COPY"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  if(arroftoks[p].tokid == "var_tk"){
+                    p++;
+                    continue;
+                  }
+                  else{
+                    alert("Error: 2 Variables expected after COPY");
+                    exit();
+                  }
+                }
+                else{
+                  alert("Error: Variable expected after COPY");
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "DIV"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable or number expected after DIV")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "MULT"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable or Number expected after MULT")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "SUB"){
+                p++;
+                if(arroftoks[p].tokid == "var_tk"){
+                  p++;
+                  continue;
+                }
+                else if(arroftoks[p].tokid == "num_tk"){
+                  p++;
+                  continue;
+                }
+                else{
+                  alert("Error: Variable or Number expected after SUB")
+                  exit();
+                }
+              }
+              if(arroftoks[p].usd == "PUSH"){ //check before or do like old one?
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "POP"){
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "STACKW"){
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "STACKR"){
+                p++;
+                continue;
+              }
+              if(arroftoks[p].usd == "STOP"){
+                while(p<arroftoks.length - 1){
+                  p++;
+                  if(arroftoks[p].tokid == "var_tk"){
+                    p++;
+                    if(arroftoks[p].tokid == "num_tk"){ //need to verify that these variables maybe could do in execution as well
+                      arrofvars.set(arroftoks[p-1].usd, arroftoks[p].usd);
+                      continue;
+                    }
+                    else{
+                      alert("ERROR: Number expected");
+                      exit();
+                    }
+                  }
+                  else{
+                    alert("ERROR: Variable expected");
+                    exit();
+                  } 
+                }
+              }
+              else{
+                alert("ERROR: Uknown argument");
+              }
+            }
+            return arrofvars;
+          }
+
+          arrofvars = parseforit();
+          arroffuncts[0]("X", 0);
+          alert(arrofvars.get("X"));
+
+          function goforit(){
+            let p = 0;
+            while(p < arroftoks.length){
+              
+            }
+          }
+
+
+        }
+
+        </script>
+        <textarea id="codespace"></textarea> <br/><br/>    
+        <button id="compile" onclick="disname()">Compile</button>
+        <canvas id="result"></canvas>
+      </div>  
+</div>
+
+</body>
+
+</html>
+
